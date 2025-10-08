@@ -3,9 +3,9 @@ Configuration file for NHL Stats application.
 Contains constants and settings used throughout the application.
 """
 
-SCOREBOARD_URL = "https://api-web.nhle.com/v1/scoreboard"
-NEWS_URL = "https://www.nhl.com/news"
-LINEUP_URL = "https://www.dailyfaceoff.com/teams"
+NHLE_URL        = "https://api-web.nhle.com/v1"
+NEWS_URL        = "https://www.nhl.com/news"
+LINEUP_URL      = "https://www.dailyfaceoff.com/teams"
 
 TEAMS_LIST = {
     "ANA": "Anaheim Ducks",
@@ -39,4 +39,14 @@ TEAMS_LIST = {
     "VAN": "Vancouver Canucks",
     "VGK": "Vegas Golden Knights",
     "WPG": "Winnipeg Jets"
+}
+
+POSITIONS_LIST = {
+    "C": "Center",
+    "L": "Left Wing",
+    "LW": "Left Wing",
+    "R": "Right Wing",
+    "RW": "Right Wing",
+    "D": "Defenseman",
+    "G": "Goaltender"
 }

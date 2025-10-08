@@ -1,6 +1,6 @@
 from datetime import datetime, timezone, timedelta
 import zoneinfo
-from config import TEAMS_LIST
+from config import TEAMS_LIST, POSITIONS_LIST
 
 def parse_date(date_string):
     if not date_string:
@@ -45,19 +45,23 @@ def format_utc_to_est(dt, format="%m/%d/%Y %I:%M %p"):
     return dt_est.strftime(format)
 ...
 
+def hyphen_words(s=str):
+    return s.lower().replace(" ", "-")
+...
+
 def validate_team_abbrev(abbrev):
     if not isinstance(abbrev, str) or len(abbrev) != 3:
         return False
     return abbrev.upper() in TEAMS_LIST
+...
 
 def parse_team_from_abbrev(abbrev, hyphen=False):
-    
     team_name = TEAMS_LIST.get(abbrev.upper(), None)
     if hyphen and team_name:
         return team_name.lower().replace(" ", "-")
     return team_name
 ...
 
-def hyphen_words(s=str):
-    return s.lower().replace(" ", "-")
+def position_code_to_name(code):
+    return POSITIONS_LIST.get(code.upper(), "Unknown")
 ...
