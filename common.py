@@ -1,79 +1,6 @@
 from datetime import datetime, timezone, timedelta
 import zoneinfo
-
-TEAMS_LIST = {
-    "ANA": "Anaheim Ducks",
-    "ARI": "Arizona Coyotes",
-    "BOS": "Boston Bruins",
-    "BUF": "Buffalo Sabres",
-    "CGY": "Calgary Flames",
-    "CAR": "Carolina Hurricanes",
-    "CHI": "Chicago Blackhawks",
-    "COL": "Colorado Avalanche",
-    "CBJ": "Columbus Blue Jackets",
-    "DAL": "Dallas Stars",
-    "DET": "Detroit Red Wings",
-    "EDM": "Edmonton Oilers",
-    "FLA": "Florida Panthers",
-    "LAK": "Los Angeles Kings",
-    "MIN": "Minnesota Wild",
-    "MTL": "Montreal Canadiens",
-    "NSH": "Nashville Predators",
-    "NJD": "New Jersey Devils",
-    "NYI": "New York Islanders",
-    "NYR": "New York Rangers",
-    "OTT": "Ottawa Senators",
-    "PHI": "Philadelphia Flyers",
-    "PIT": "Pittsburgh Penguins",
-    "SJS": "San Jose Sharks",
-    "SEA": "Seattle Kraken",
-    "STL": "St. Louis Blues",
-    "TBL": "Tampa Bay Lightning",
-    "TOR": "Toronto Maple Leafs",
-    "VAN": "Vancouver Canucks",
-    "VGK": "Vegas Golden Knights",
-    "WPG": "Winnipeg Jets"
-}
-
-def format_date(date, format="%m/%d/%Y"):
-    import datetime
-    if isinstance(date, (int, float)):
-        dt = datetime.datetime.fromtimestamp(date)
-    elif isinstance(date, str):
-        try:
-            dt = datetime.datetime.fromisoformat(date)
-        except ValueError:
-            dt = datetime.datetime.strptime(date, "%Y-%m-%d")
-    elif isinstance(date, datetime.datetime):
-        dt = date
-    elif isinstance(date, datetime.date):
-        dt = datetime.datetime.combine(date, datetime.time())
-    else:
-        raise TypeError("Unsupported date type")
-
-    # Format with zero-padded month/day, then remove leading zeros
-    formatted = dt.strftime(format)
-    # Remove leading zero from month and day
-    parts = formatted.split('/')
-    if len(parts) == 3:
-        parts[0] = str(int(parts[0]))  # month
-        parts[1] = str(int(parts[1]))  # day
-        formatted = '/'.join(parts)
-    return formatted
-...
-
-def is_date_string(val):
-    import re
-
-    """
-    Check if a string value looks like an ISO date format
-    """
-    if not isinstance(val, str):
-        return False
-    # Check for ISO date pattern: YYYY-MM-DDTHH:MM:SS.fff or similar
-    date_pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?$'
-    return bool(re.match(date_pattern, val))
-...
+from config import TEAMS_LIST
 
 def parse_date(date_string):
     if not date_string:
@@ -131,6 +58,6 @@ def parse_team_from_abbrev(abbrev, hyphen=False):
     return team_name
 ...
 
-def hyphen_words(s):
+def hyphen_words(s=str):
     return s.lower().replace(" ", "-")
 ...
