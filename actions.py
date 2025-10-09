@@ -167,3 +167,17 @@ def list_available_teams(args=None):
         None
     )
 ...
+
+
+if __name__ == "__main__":
+    import sys, registry
+    args = []
+    try:
+        cmd = registry.get_command("list", "teams")
+        (r, p, h) = cmd(args)
+        if h: h()
+        if p: p()
+        else: print(r)
+    except Exception as e:
+        print(f"Error retrieving command: {e}")
+...

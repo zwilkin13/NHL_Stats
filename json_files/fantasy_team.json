@@ -1,0 +1,23 @@
+{
+    "team_name": "Team Blizzard",
+    "players": [
+        {
+            "name": "John Doe",
+            "position": "Forward",
+            "number": 9,
+            "id": 123456
+        },
+        {
+            "name": "Jane Smith",
+            "position": "Defense",
+            "number": 5,
+            "id": 123457
+        },
+        {
+            "name": "Mike Johnson",
+            "position": "Goalie",
+            "number": 30,
+            "id": 123458
+        }
+    ]
+}

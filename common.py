@@ -65,3 +65,99 @@ def parse_team_from_abbrev(abbrev, hyphen=False):
 def position_code_to_name(code):
     return POSITIONS_LIST.get(code.upper(), "Unknown")
 ...
+
+def resolve_json_file_path(filename):
+    import os
+    # If it's already an absolute path or contains path separators, use as-is
+    if os.path.isabs(filename) or os.sep in filename or '/' in filename:
+        if os.path.exists(filename):
+            return filename
+        else:
+            raise FileNotFoundError(f"File not found: {filename}")
+    
+    # Check current directory first
+    if os.path.exists(filename):
+        return filename
+    
+    # Check json_samples directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    json_samples_path = os.path.join(script_dir, "json_samples", filename)
+    
+    if os.path.exists(json_samples_path):
+        return json_samples_path
+    
+    # If not found in either location, raise FileNotFoundError
+    raise FileNotFoundError(f"File '{filename}' not found in current directory or json_samples directory")
+...
+
+def load_json_file(file_path):
+    import json
+    import sys
+    try:
+        with open(file_path, "r") as f:
+            file_content = f.read()
+            if not file_content.strip():
+                raise ValueError("The provided file is empty.")
+            return json.loads(file_content)
+    except ValueError as e:
+        sys.exit(f"Error reading JSON file: {e}")
+    except FileNotFoundError:
+        sys.exit(f"File not found: {file_path}")
+    except json.JSONDecodeError:
+        sys.exit(f"Error decoding JSON from file: {file_path}")
+    return
+
+    import os, sys
+    try:
+        print(f"⏳ Updating Azure cookies from azure_cookies.json...")
+        file_path = resolve_json_file_path("azure_cookies.json")
+        config_path = os.path.join(os.path.dirname(__file__), "config.py")
+
+        with open(config_path, "r") as f:
+            lines = f.readlines()
+
+        cookie_objects = load_json_file(file_path)
+        cookie_dict = {}
+        for cookie_obj in cookie_objects:
+            if isinstance(cookie_obj, dict) and 'name' in cookie_obj and 'value' in cookie_obj:
+                cookie_dict[cookie_obj['name']] = cookie_obj['value']
+
+        with open(config_path, "w") as f:
+            i = 0
+            while i < len(lines):
+                line = lines[i]
+                
+                if line.strip().startswith("CookieBase"):
+                    f.write(line)
+                    i += 1
+                    
+                    while i < len(lines):
+                        line = lines[i]
+                        if "cookies=" in line:
+                            indent = len(line) - len(line.lstrip())
+                            f.write(" " * indent + "cookies={\n")
+                            for name, value in cookie_dict.items():
+                                escaped_value = value.replace("'", "\\'")
+                                f.write(" " * (indent + 4) + f"'{name}': '{escaped_value}',\n")
+                            f.write(" " * indent + "}\n")
+                            
+                            i += 1
+                            brace_count = 1
+                            while i < len(lines) and brace_count > 0:
+                                line = lines[i]
+                                brace_count += line.count('{') - line.count('}')
+                                i += 1
+                            i -= 1
+                            break
+                        else:
+                            f.write(line)
+                            i += 1
+                else:
+                    f.write(line)
+                
+                i += 1
+        print(f"🍪 PDM authentication cookies successfully updated!")
+    except Exception as e:
+        sys.exit(f"Error updating PDM cookies: {e}")
+    return
+...

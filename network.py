@@ -16,11 +16,11 @@ USER_AGENT_HEADER = {
 }
 
 # GET network operation
-def network_GET(baseUrl, endpoint, params=None, raiseStatus=True):
+def network_GET(baseUrl, endpoint, params=None, cookies=None, raiseStatus=True):
     (stop, thread) = start_spinner()
     try:
         headers = { **USER_AGENT_HEADER }
-        response = requests.get(f"{baseUrl}/{endpoint}", params=params, headers=headers)
+        response = requests.get(f"{baseUrl}/{endpoint}", params=params, headers=headers, cookies=cookies)
         if raiseStatus: response.raise_for_status()
         return response
     except requests.RequestException as e:

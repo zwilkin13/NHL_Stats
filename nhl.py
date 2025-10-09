@@ -11,7 +11,8 @@ from registry import (
 )
 
 def perform_debug_action(args):
-    actions.list_available_teams()
+
+    # actions.list_available_teams()
     # cmd = get_command("list", "roster")
     # args = ["TBL"]
     # (results, printer, header) = cmd(args)

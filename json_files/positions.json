@@ -1,0 +1,16 @@
+{
+    "Positions": {
+        "Forward": "Forward",
+        "Defense": "Defenseman",
+        "Goalie": "Goaltender"
+    },
+    "LineRole": {
+        "C": "Center",
+        "L": "Left Wing",
+        "LW": "Left Wing",
+        "R": "Right Wing",
+        "RW": "Right Wing",
+        "D": "Defenseman",
+        "G": "Goaltender"
+    }
+}
