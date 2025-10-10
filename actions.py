@@ -59,31 +59,32 @@ def load_lineups_for_game(args):
          addtl_help_text="Fetches and displays NHL games scheduled for the specified date.",
          args_help="<date?>",
          options_help=["<date?>   Date in YYYY-MM-DD or MM/DD/YYYY format. Defaults to today if not provided."])
-def load_games_for_day(args):
+def load_games_for_day(args=None):
     parser = ArgumentParser(description="Load Games for a Day Processor")
     parser.add_argument("date", nargs="?", help="Date for the game (e.g., YYYY-MM-DD or MM/DD/YYYY)", type=parse_date, default=datetime.today())
     parsed_args = parser.parse_args(args)
-
     date = parsed_args.date
+
     if date is None:
         date = datetime.today()
 
-    response = network_GET(f"{NHLE_URL}", "scoreboard/now")
+    response = network_GET(f"{NHLE_URL}", "scoreboard/" + (f"{date.strftime('%Y-%m-%d')}" if date else "now"))
     if response.status_code == 200:
         try:
-            obj = json.loads(response.text, object_hook=lambda d: SimpleNamespace(**d))
-            games_today = next(
-                (games for games in getattr(obj, "gamesByDate", []) if getattr(games, "date", "") == date.strftime("%Y-%m-%d")),
+            data = response.json()
+            games = (next(
+                (games for games in data.get("gamesByDate", []) if games.get("date") == data.get("focusedDate")),
                 None
-            )
-            if games_today is None:
-                sys.exit(f"❌ No games found for {date.strftime('%A %m/%d/%Y')}.")
-            
+            ))
+
+            if not games or len(games) == 0:
+                sys.exit(f"🏒 There are no NHL games playing on {date.strftime('%A %m/%d/%Y')}.")
+
             return (
-                games_today,
-                lambda: printer.print_games_data(games_today),
+                games["games"],
+                lambda: printer.print_games_data(games["games"]),
                 lambda: printer.print_header_table(
-                    "NHL Games",
+                    f"NHL Games ({len(games["games"])})",
                     colored(date.strftime('%A, %B %#d %Y'), 'light_blue', attrs=['bold'])
                 )
             )
@@ -170,14 +171,6 @@ def list_available_teams(args=None):
 
 
 if __name__ == "__main__":
-    import sys, registry
-    args = []
-    try:
-        cmd = registry.get_command("list", "teams")
-        (r, p, h) = cmd(args)
-        if h: h()
-        if p: p()
-        else: print(r)
-    except Exception as e:
-        print(f"Error retrieving command: {e}")
+    import nhl
+    nhl.perform_debug_action(["get", "games"])
 ...

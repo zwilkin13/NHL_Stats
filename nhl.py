@@ -10,14 +10,27 @@ from registry import (
     print_help
 )
 
-def perform_debug_action(args):
+def perform_debug_action(args=[]):
+    action = "get"
+    method = "games"
 
-    # actions.list_available_teams()
-    # cmd = get_command("list", "roster")
-    # args = ["TBL"]
-    # (results, printer, header) = cmd(args)
-    # printer()
-    print("✅ Success!")
+    try:
+        cmd = get_command(action, method)
+        (results, printer, header) = cmd(args[2:])
+        if header: header()
+        if printer: printer()
+        else: print(results)
+        print("✅ Success!")
+    except Exception as e:
+        print(f"❌ Error executing command '{action} {method}': {e}")
+    except SystemExit as e:
+        if e.code == 0:
+            pass
+        elif e.code == 1:
+            print(f"❌ Unknown command '{action} {method}' was entered. Please try again.")
+        else:
+            print(f"❌ {action.capitalize()} {method} exited!\n   {e}")
+    return
 ...
 
 # Import modules that contain commands

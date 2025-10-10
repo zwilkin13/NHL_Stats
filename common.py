@@ -1,6 +1,6 @@
 from datetime import datetime, timezone, timedelta
 import zoneinfo
-from config import TEAMS_LIST, POSITIONS_LIST
+from config import TEAMS_LIST, POSITIONS_LIST, LINEUP_URL
 
 def parse_date(date_string):
     if not date_string:
@@ -45,7 +45,7 @@ def format_utc_to_est(dt, format="%m/%d/%Y %I:%M %p"):
     return dt_est.strftime(format)
 ...
 
-def hyphen_words(s=str):
+def hyphen_words(s):
     return s.lower().replace(" ", "-")
 ...
 
@@ -160,4 +160,25 @@ def load_json_file(file_path):
     except Exception as e:
         sys.exit(f"Error updating PDM cookies: {e}")
     return
+...
+
+def parse_game_from_data(data):
+    return {
+        "startTime": format_utc_to_est(data["startTimeUTC"]),
+        "broadcasts": ", ".join(f"{b.get('network', '')}" for b in data.get("tvBroadcasts", []) if b.get("network")),
+        "venue": data.get("venue", {}).get("default", ""),
+        "homeTeam": parse_team_from_data("homeTeam", data),
+        "awayTeam": parse_team_from_data("awayTeam", data)
+    }
+...
+
+def parse_team_from_data(team, data):
+    return {
+        "id": data[f"{team}"].get("id", 0),
+        "abbrev": data[f"{team}"].get("abbrev", ""),
+        "name": data[f"{team}"].get("name", {}).get("default", ""),
+        "commonName": data[f"{team}"].get("commonName", {}).get("default", ""),
+        "record": data[f"{team}"].get("record", "0-0"),
+        "lineupUrl": f"{LINEUP_URL}/{parse_team_from_abbrev(data[f'{team}'].get('abbrev', ''), True)}/line-combinations",
+    }
 ...
