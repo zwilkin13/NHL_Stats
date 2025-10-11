@@ -10,9 +10,9 @@ from registry import (
     print_help
 )
 
-def perform_debug_action(args=[]):
-    action = "get"
-    method = "games"
+def perform_debug_action(args=None):
+    action = args[0]
+    method = args[1]
 
     try:
         cmd = get_command(action, method)

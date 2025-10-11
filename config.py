@@ -3,10 +3,6 @@ Configuration file for NHL Stats application.
 Contains constants and settings used throughout the application.
 """
 
-NHLE_URL        = "https://api-web.nhle.com/v1"
-NEWS_URL        = "https://www.nhl.com/news"
-LINEUP_URL      = "https://www.dailyfaceoff.com/teams"
-
 TEAMS_LIST = {
     "ANA": "Anaheim Ducks",
     "ARI": "Arizona Coyotes",

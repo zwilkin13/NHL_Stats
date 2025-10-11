@@ -2,22 +2,23 @@
 Scripts for command line actions.
 """
 
-import json
+import os
 import sys
 import printer
 from argparse import ArgumentParser
 from datetime import datetime
-from types import SimpleNamespace
 from termcolor import colored
 from registry import command
 from network import network_GET, NetworkError
-from config import NHLE_URL, LINEUP_URL, TEAMS_LIST
+from config import TEAMS_LIST
 from common import (
     parse_date,
     parse_team_from_abbrev,
     position_code_to_name,
     validate_team_abbrev
 )
+from dotenv import load_dotenv
+load_dotenv()
 
 # Gets lineups for a game
 @command(action="get", method="lineups",
@@ -68,7 +69,8 @@ def load_games_for_day(args=None):
     if date is None:
         date = datetime.today()
 
-    response = network_GET(f"{NHLE_URL}", "scoreboard/" + (f"{date.strftime('%Y-%m-%d')}" if date else "now"))
+    base_url = os.getenv("NHLE_URL")
+    response = network_GET(f"{base_url}", "scoreboard/" + (f"{date.strftime('%Y-%m-%d')}" if date else "now"))
     if response.status_code == 200:
         try:
             data = response.json()
@@ -111,7 +113,8 @@ def list_roster_for_team(args):
     if not validate_team_abbrev(parsed_args.team):
         sys.exit(f"Invalid team abbreviation provided. [{parsed_args.team}]")
 
-    response = network_GET(f"{NHLE_URL}", f"roster/{parsed_args.team}/20252026")
+    base_url = os.getenv("NHLE_URL")
+    response = network_GET(f"{base_url}", f"roster/{parsed_args.team}/20252026")
     if response.status_code == 200:
         data = response.json()
 
@@ -169,8 +172,40 @@ def list_available_teams(args=None):
     )
 ...
 
+def send_email(to, subject, body):
+    import smtplib
+    from email.message import EmailMessage
+    _from = os.getenv("EMAIL_FROM")
+    _password = os.getenv("EMAIL_PASSWORD")
+    _server = os.getenv("EMAIL_SMTP_SERVER")
+    _port = os.getenv("EMAIL_SMTP_PORT")
+
+    msg = EmailMessage()
+    msg["From"] = "NHL Stats"
+    msg["To"] = to
+    msg["Subject"] = subject
+    msg.set_content(body, subtype='html')
+
+    try:
+        with smtplib.SMTP(_server, _port) as server:
+            server.starttls()
+            server.login(_from, _password)
+            server.send_message(msg)
+        print("Email sent successfully.")
+    except Exception as e:
+        sys.exit(f"Failed to send email: {e}")
+    pass
+...
 
 if __name__ == "__main__":
     import nhl
-    nhl.perform_debug_action(["get", "games"])
+    # nhl.perform_debug_action(["get", "games"])
+
+    d, p, h = load_games_for_day(["10/11/2025"])
+    
+    send_email(
+        "z.wilkin13@gmail.com",
+        "NHL Stats - Player Update!",
+        f"{d}"
+    )
 ...

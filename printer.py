@@ -1,3 +1,4 @@
+import os
 import prettytable as pt
 from termcolor import colored
 from common import (
@@ -6,7 +7,8 @@ from common import (
     hyphen_words,
     parse_game_from_data
 )
-from config import LINEUP_URL
+from dotenv import load_dotenv
+load_dotenv()
 
 
 def print_debugger_warning(args):
@@ -95,7 +97,7 @@ def print_team_lineups(teams=[]):
             continue
         name = parse_team_from_abbrev(t)
         name_hyphen = hyphen_words(name)
-        lineup_url = f"{LINEUP_URL}/{name_hyphen}/line-combinations"
+        lineup_url = f"{os.getenv("LINEUP_URL")}/{name_hyphen}/line-combinations"
         table.add_row([name, lineup_url])
 
     print(table)

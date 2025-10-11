@@ -1,6 +1,9 @@
+import os
 from datetime import datetime, timezone, timedelta
 import zoneinfo
-from config import TEAMS_LIST, POSITIONS_LIST, LINEUP_URL
+from config import TEAMS_LIST, POSITIONS_LIST
+from dotenv import load_dotenv
+load_dotenv()
 
 def parse_date(date_string):
     if not date_string:
@@ -179,6 +182,6 @@ def parse_team_from_data(team, data):
         "name": data[f"{team}"].get("name", {}).get("default", ""),
         "commonName": data[f"{team}"].get("commonName", {}).get("default", ""),
         "record": data[f"{team}"].get("record", "0-0"),
-        "lineupUrl": f"{LINEUP_URL}/{parse_team_from_abbrev(data[f'{team}'].get('abbrev', ''), True)}/line-combinations",
+        "lineupUrl": f"{os.getenv("LINEUP_URL")}/{parse_team_from_abbrev(data[f'{team}'].get('abbrev', ''), True)}/line-combinations",
     }
 ...
