@@ -1,21 +1,20 @@
 """
 Scripts for command line actions.
 """
-
-import os
-import sys
-import printer
+import os, sys, printer
 from argparse import ArgumentParser
 from datetime import datetime
 from termcolor import colored
 from registry import command
 from network import network_GET, NetworkError
-from config import TEAMS_LIST
+from data import TEAMS_LIST
 from common import (
-    parse_date,
-    parse_team_from_abbrev,
     position_code_to_name,
     validate_team_abbrev
+)
+from data_parsers import (
+    parse_date,
+    parse_team_from_abbrev
 )
 from dotenv import load_dotenv
 load_dotenv()
@@ -163,49 +162,28 @@ def extract_player_info(player, line):
 @command(action="list", method="teams",
          print_title="NHL Teams",
          help_text="Full list of all NHL teams and their abbreviations.",
-         addtl_help_text="Fetches and displays the list of NHL teams.")
+         addtl_help_text="Fetches and displays the list of NHL teams.",
+         options_help=["--color, -c   Colorize team names based on primary team color."])
 def list_available_teams(args=None):
+    color = False
+    if args:
+        parser = ArgumentParser()
+        parser.add_argument("--color", "-c", action="store_true", default=False)
+        parsed_args, _ = parser.parse_known_args(args)
+        color = parsed_args.color
+
     return (
         TEAMS_LIST,
-        lambda: printer.print_teams_list(TEAMS_LIST),
+        lambda: printer.print_teams_list(TEAMS_LIST, color=color),
         None
     )
 ...
 
-def send_email(to, subject, body):
-    import smtplib
-    from email.message import EmailMessage
-    _from = os.getenv("EMAIL_FROM")
-    _password = os.getenv("EMAIL_PASSWORD")
-    _server = os.getenv("EMAIL_SMTP_SERVER")
-    _port = os.getenv("EMAIL_SMTP_PORT")
-
-    msg = EmailMessage()
-    msg["From"] = "NHL Stats"
-    msg["To"] = to
-    msg["Subject"] = subject
-    msg.set_content(body, subtype='html')
-
-    try:
-        with smtplib.SMTP(_server, _port) as server:
-            server.starttls()
-            server.login(_from, _password)
-            server.send_message(msg)
-        print("Email sent successfully.")
-    except Exception as e:
-        sys.exit(f"Failed to send email: {e}")
-    pass
-...
-
 if __name__ == "__main__":
-    import nhl
-    # nhl.perform_debug_action(["get", "games"])
+    import emailer
+    data, _, _ = list_roster_for_team(["TBL"])
+    team_name = parse_team_from_abbrev("TBL")
+    body = emailer.format_team_roster(data, team_name)
 
-    d, p, h = load_games_for_day(["10/11/2025"])
-    
-    send_email(
-        "z.wilkin13@gmail.com",
-        "NHL Stats - Player Update!",
-        f"{d}"
-    )
+    emailer.send("z.wilkin13@gmail.com", "NHL Stats - Player Update!", body)
 ...

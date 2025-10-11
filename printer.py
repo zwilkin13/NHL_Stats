@@ -3,8 +3,10 @@ import prettytable as pt
 from termcolor import colored
 from common import (
     validate_team_abbrev,
-    parse_team_from_abbrev, 
-    hyphen_words,
+    hyphen_words
+)
+from data_parsers import (
+    parse_team_from_abbrev,
     parse_game_from_data
 )
 from dotenv import load_dotenv
@@ -30,9 +32,17 @@ def print_header_table(title="NHL Stats", subtitle=""):
 ...
 
 def print_games_data(data):
-    for game_data in data:
-        print_game_data(parse_game_from_data(game_data))
-    return True
+    try:
+        for game_data in data:
+            try:
+                print_game_data(parse_game_from_data(game_data))
+            except Exception as e:
+                print(f"Error printing: {game_data['awayTeam'].get('commonName', '').get('default', '')} @ {game_data['homeTeam'].get('commonName', '').get('default', '')} - {e}")
+                continue
+        return True
+    except Exception as e:
+        print(f"Error printing games data: {e}")
+        return False
 ...
 
 def print_game_data(game):
@@ -104,20 +114,27 @@ def print_team_lineups(teams=[]):
     return
 ...
 
-def print_teams_list(teams):
+def print_teams_list(teams, color=True):
     teams = sorted(teams.items())
-    table = pt.PrettyTable(border=True, header=True, align="l")
+    table = pt.PrettyTable(border=True, align="l")
     table.set_style(pt.SINGLE_BORDER)
     table.title = "🏒 NHL Teams"
-    table.field_names = ["Abbrev.", "Team Name"]
+    table.header = False
 
-    for abbrev, name in teams:
-        table.add_row([abbrev, name])
+    for abbrev, team in teams:
+        table.add_row([abbrev, colored(team["name"], hex_to_rgb(team["colors"]["primary"])) if color else team["name"]])
 
     print(table)
     return
 ...
 
+def hex_to_rgb(hex_color):
+    """Convert hex color string to an (R, G, B) tuple."""
+    hex_color = hex_color.lstrip('#')
+    if len(hex_color) == 3:
+        hex_color = ''.join([c*2 for c in hex_color])
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+...
 
 if __name__ == "__main__":
     import nhl

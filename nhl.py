@@ -41,7 +41,7 @@ register_module_commands(actions)
 
 if __name__== "__main__":
     if hasattr(sys, "orig_argv") and any("debugpy" in arg for arg in sys.orig_argv):
-        perform_debug_action(sys.argv)
+        perform_debug_action(sys.argv[1:])
     else:
         try:
             
