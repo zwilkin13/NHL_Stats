@@ -142,7 +142,7 @@ def list_roster_for_team(args):
 
         team_name = parse_team_from_abbrev(parsed_args.team)
         team_data_parsed = parse_team_from_abbrev_full(parsed_args.team)
-        roster_formatted = emailer.format_team_roster(roster, team_data_parsed)
+        roster_formatted = emailer.formatter.format_team_roster(roster, team_data_parsed)
         return (
             roster,
             lambda: printer.print_roster_data(parsed_args.team, roster),
@@ -189,7 +189,7 @@ if __name__ == "__main__":
     abbv = "FLA"
     data, _, _ = list_roster_for_team([abbv])
     team = parse_team_from_abbrev_full(abbv)
-    body = emailer.format_team_roster(data, team)
+    body = emailer.formatter.format_team_roster(data, team)
 
     emailer.send("z.wilkin13@gmail.com", "NHL Stats - Player Update!", body)
 ...
