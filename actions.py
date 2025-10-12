@@ -1,7 +1,7 @@
 """
 Scripts for command line actions.
 """
-import os, sys, printer
+import os, sys, printer, emailer
 from argparse import ArgumentParser
 from datetime import datetime
 from termcolor import colored
@@ -14,7 +14,8 @@ from common import (
 )
 from data_parsers import (
     parse_date,
-    parse_team_from_abbrev
+    parse_team_from_abbrev,
+    parse_team_from_abbrev_full
 )
 from dotenv import load_dotenv
 load_dotenv()
@@ -107,6 +108,7 @@ def list_roster_for_team(args):
     parser.add_argument("--forward", "-f", help="Return forwards only", action="store_true", default=False)
     parser.add_argument("--defense", "-d", help="Return defensemen only", action="store_true", default=False)
     parser.add_argument("--goalie", "-g", help="Return goalies only", action="store_true", default=False)
+    parser.add_argument("--email", "-e", help="Email address to send roster to", type=str, default=None)
     parsed_args = parser.parse_args(args)
 
     if not validate_team_abbrev(parsed_args.team):
@@ -123,13 +125,13 @@ def list_roster_for_team(args):
         roster = []
         
         for forward in data.get("forwards", []):
-            forwards.append(extract_player_info(forward, "Forward"))
+            forwards.append(extract_player_info(forward, "F"))
 
         for defense in data.get("defensemen", []):
-            defensemen.append(extract_player_info(defense, "Defenseman"))
+            defensemen.append(extract_player_info(defense, "D"))
 
         for goalie in data.get("goalies", []):
-            goalies.append(extract_player_info(goalie, "Goalie"))
+            goalies.append(extract_player_info(goalie, "G"))
 
         if parsed_args.forward or parsed_args.defense or parsed_args.goalie:
             if parsed_args.forward: roster.extend(forwards)
@@ -138,10 +140,14 @@ def list_roster_for_team(args):
         else: 
             roster = forwards + defensemen + goalies
 
+        team_name = parse_team_from_abbrev(parsed_args.team)
+        team_data_parsed = parse_team_from_abbrev_full(parsed_args.team)
+        roster_formatted = emailer.format_team_roster(roster, team_data_parsed)
         return (
             roster,
             lambda: printer.print_roster_data(parsed_args.team, roster),
-            None
+            None,
+            lambda: emailer.send(parsed_args.email, f"NHL Stats - {team_name} Roster", roster_formatted) if parsed_args.email else None
         )
     else:
         sys.exit("Error loading team roster.")
@@ -154,8 +160,7 @@ def extract_player_info(player, line):
         "id": player.get("id", ""),
         "name": f"{first_name} {last_name}",
         "number": player.get("sweaterNumber", ""),
-        "line": line,
-        "position": position_code_to_name(player.get("positionCode", ""))
+        "position": f"{line} - {position_code_to_name(player.get("positionCode", ""))}"
     }
 ...
 
@@ -181,9 +186,10 @@ def list_available_teams(args=None):
 
 if __name__ == "__main__":
     import emailer
-    data, _, _ = list_roster_for_team(["TBL"])
-    team_name = parse_team_from_abbrev("TBL")
-    body = emailer.format_team_roster(data, team_name)
+    abbv = "FLA"
+    data, _, _ = list_roster_for_team([abbv])
+    team = parse_team_from_abbrev_full(abbv)
+    body = emailer.format_team_roster(data, team)
 
     emailer.send("z.wilkin13@gmail.com", "NHL Stats - Player Update!", body)
 ...

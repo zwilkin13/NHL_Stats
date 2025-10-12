@@ -70,12 +70,13 @@ if __name__== "__main__":
                     print(f"   {cmd}: [{', '.join(sub_cmds)}]")
                 sys.exit(0)
         
-            (results, printer, header) = command_function(raw_args)
+            (results, printer, header, email) = command_function(raw_args)
             print("✅ Success!")
             
             if header: header()
             if printer: printer()
             else: print(results)
+            if email: email()
         except Exception as e:
             print(f"❌ Error executing command '{action} {method}': {e}")
         except SystemExit as e:

@@ -75,19 +75,17 @@ def print_game_data(game):
     return
 ...
 
-
 def print_roster_data(team_abbrv, roster):
     table = pt.PrettyTable(border=True, header=True, align="l")
     table.set_style(pt.SINGLE_BORDER)
     team_name = parse_team_from_abbrev(team_abbrv)
     table.title = f"🏒 {team_name} Roster"
-    table.field_names = ["#", "Player", "Line", "Position", "id"]
+    table.field_names = ["#", "Player", "Position", "id"]
 
     for player in roster:
         table.add_row([
             player.get("number", ""), 
             player.get("name", ""),
-            player.get("line", ""),
             player.get("position", ""),
             player.get("id", "")])
 

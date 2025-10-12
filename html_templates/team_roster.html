@@ -1,49 +1,49 @@
 <html>
-<style>
-    tr:nth-child(even) {
-        text-align: left;
-    }
-    th, td {
-        text-align: left;
-        padding: 4px 5px 2px 5px;
-    }
-    th{
-        border-bottom: 1px solid black;
-    }
-    h2 {
-        text-align: center;
-    }
-</style>
 <body style="padding: 10px;">
 
-<table style="border-width:1px;border-style:solid;border-color:black;background-color:white;width:100%;max-width:600px;box-sizing:border-box;border-collapse:collapse;border-spacing:0px;font-family:Arial,sans-serif;line-height:24px;text-align:center;margin: 0 auto;" cellpadding="0" cellspacing="0" >
-    <tbody>
-        <tr>
-            <td>
-                <h2 style="margin-top: 15px;margin-bottom:10px">$team_name</h2>
+<div>
+    <!-- Message -->
+     <div style="font-size: 18px;font-weight: 400;margin-bottom: 10px;">
+        Below is the active roster for the $team_name
+    </div>
 
-                <table style="border-spacing:0;width:100%;">
-                    <tbody>
-                        <colgroup>
-                            <col style="width:5%">
-                            <col style="width:45%">
-                            <col style="width:25%">
-                            <col style="width:25%">
-                        </colgroup>
-                        <tr>
-                            <th style="text-align: center;">#</th>
-                            <th>Player</th>
-                            <th>Line</th>
-                            <th>Position</th>
-                        </tr>
-                        $player_rows
-                    </tbody>
-                </table>
-                
-            </td>
-        </tr>
-    </tbody>
-</table>
+    <!-- Team Roster Table -->
+    <table style="border: 1px solid black;background-color:white;width:300%;min-width: 350px;max-width:450px;margin:0px 0px 10px 0px;" cellpadding="0" cellspacing="0" >
+        <tbody>
+            <tr>
+                <td>
+                    $table_header
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 2px 5px 2px 5px">
+                    <table style="border-spacing:0;width:100%;">
+                        <tbody>
+                            <colgroup>
+                                <col style="width:10%">
+                                <col style="width:55%">
+                                <col style="width:35%">
+                            </colgroup>
+                            <tr>
+                                <th style="text-align: center;padding: 0px 0px 2px 0px;border-bottom: 1px solid black;">
+                                    #
+                                </th>
+                                <th style="text-align: left;padding: 0px 0px 2px 0px;border-bottom: 1px solid black;">
+                                    Player
+                                </th>
+                                <th style="text-align: left;padding: 0px 0px 2px 0px;border-bottom: 1px solid black;">
+                                    Position
+                                </th>
+                            </tr>
+                            $player_rows
+                        </tbody>
+                    </table>
+                    
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 
 
 </body>

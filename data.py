@@ -5,8 +5,7 @@ Contains constants like team info and position mappings.
 
 TEAMS_LIST = {
     "ANA": {"name": "Anaheim Ducks", "colors": {"primary": "#F47A38", "secondary": "#111111", "font": "#FFFFFF"}},
-    "ARI": {"name": "Arizona Coyotes", "colors": {"primary": "#8C2633", "secondary": "#E2D6B5", "font": "#FFFFFF"}},
-    "BOS": {"name": "Boston Bruins", "colors": {"primary": "#FFB81C", "secondary": "#FCB514", "font": "#FFFFFF"}},
+    "BOS": {"name": "Boston Bruins", "colors": {"primary": "#FFB81C", "secondary": "#010101", "font": "#FFFFFF"}},
     "BUF": {"name": "Buffalo Sabres", "colors": {"primary": "#003087", "secondary": "#FCB514", "font": "#FFFFFF"}},
     "CGY": {"name": "Calgary Flames", "colors": {"primary": "#b72b35", "secondary": "#F1BE48", "font": "#FFFFFF"}},
     "CAR": {"name": "Carolina Hurricanes", "colors": {"primary": "#CE1126", "secondary": "#111111", "font": "#FFFFFF"}},
@@ -32,6 +31,7 @@ TEAMS_LIST = {
     "STL": {"name": "St. Louis Blues", "colors": {"primary": "#002f87", "secondary": "#FCB514", "font": "#FFFFFF"}},
     "TBL": {"name": "Tampa Bay Lightning", "colors": {"primary": "#002868", "secondary": "#000000", "font": "#FFFFFF"}},
     "TOR": {"name": "Toronto Maple Leafs", "colors": {"primary": "#003E7E", "secondary": "#003E7E", "font": "#FFFFFF"}},
+    "UTA": {"name": "Utah Mammoths", "colors": {"primary": "#69B3E7", "secondary": "#010101", "font": "#FFFFFF"}},
     "VAN": {"name": "Vancouver Canucks", "colors": {"primary": "#001f5c", "secondary": "#021B2C", "font": "#FFFFFF"}},
     "VGK": {"name": "Vegas Golden Knights", "colors": {"primary": "#b4975a", "secondary": "#333F42", "font": "#FFFFFF"}},
     "WPG": {"name": "Winnipeg Jets", "colors": {"primary": "#004B87", "secondary": "#A4C8E1", "font": "#FFFFFF"}},

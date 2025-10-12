@@ -43,6 +43,17 @@ def parse_team_from_abbrev(abbrev, hyphen=False):
     return team_name
 ...
 
+def parse_team_from_abbrev_full(abbrev):
+    team = TEAMS_LIST.get(abbrev.upper(), None)
+    if team:
+        return {
+            "name": team["name"],
+            "primaryColor": team["colors"]["primary"],
+            "secondaryColor": team["colors"]["secondary"],
+            "fontColor": team["colors"]["font"],
+        }
+    return None
+
 def parse_team_from_data(team, data):
     return {
         "id": data[f"{team}"].get("id", 0),
