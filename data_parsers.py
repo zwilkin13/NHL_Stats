@@ -1,7 +1,11 @@
 
-import os, datetime
+import os
+from datetime import datetime
 from data import TEAMS_LIST
-from common import format_utc_to_est
+from common import (
+    format_utc_to_est,
+    position_code_to_name
+)
 
 def parse_date(date_string):
     if not date_string:
@@ -53,6 +57,7 @@ def parse_team_from_abbrev_full(abbrev):
             "fontColor": team["colors"]["font"],
         }
     return None
+...
 
 def parse_team_from_data(team, data):
     return {
@@ -62,5 +67,16 @@ def parse_team_from_data(team, data):
         "commonName": data[f"{team}"].get("commonName", {}).get("default", ""),
         "record": data[f"{team}"].get("record", "0-0"),
         "lineupUrl": f"{os.getenv("LINEUP_URL")}/{parse_team_from_abbrev(data[f'{team}'].get('abbrev', ''), True)}/line-combinations",
+    }
+...
+
+def parse_player_info(player, line):
+    first_name = player.get("firstName", {}).get("default", "")
+    last_name = player.get("lastName", {}).get("default", "")
+    return {
+        "id": player.get("id", ""),
+        "name": f"{first_name} {last_name}",
+        "number": player.get("sweaterNumber", ""),
+        "position": f"{line} - {position_code_to_name(player.get("positionCode", ""))}"
     }
 ...

@@ -1,9 +1,9 @@
-from collections import defaultdict
-
 """
 Command Registry System
 Provides decorators and utilities for automatically registering API commands
 """
+
+from collections import defaultdict
 
 # Global command registry
 _COMMAND_REGISTRY = {}

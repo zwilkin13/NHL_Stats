@@ -8,14 +8,15 @@ from termcolor import colored
 from registry import command
 from network import network_GET, NetworkError
 from data import TEAMS_LIST
+from spinner import start_spinner, stop_spinner
 from common import (
-    position_code_to_name,
     validate_team_abbrev
 )
 from data_parsers import (
     parse_date,
     parse_team_from_abbrev,
-    parse_team_from_abbrev_full
+    parse_team_from_abbrev_full,
+    parse_player_info
 )
 from dotenv import load_dotenv
 load_dotenv()
@@ -57,21 +58,24 @@ def load_lineups_for_game(args):
 @command(action="get", method="games",
          print_title="NHL Games",
          help_text="Load NHL games for a specific day.",
-         addtl_help_text="Fetches and displays NHL games scheduled for the specified date.",
+         addtl_help_text="Fetches and displays NHL games scheduled for the specified date.\n   Date should be in YYYY-MM-DD or MM/DD/YYYY format. Defaults to today if not provided.",
          args_help="<date?>",
-         options_help=["<date?>   Date in YYYY-MM-DD or MM/DD/YYYY format. Defaults to today if not provided."])
+         options_help=[
+            "--print, -p      Print schedule to the console",
+            "--email, -e      Email address to send schedule to"
+         ])
 def load_games_for_day(args=None):
     parser = ArgumentParser(description="Load Games for a Day Processor")
     parser.add_argument("date", nargs="?", help="Date for the game (e.g., YYYY-MM-DD or MM/DD/YYYY)", type=parse_date, default=datetime.today())
+    parser.add_argument("--print", "-p", help="Print the roster to console", action="store_true", default=False)
+    parser.add_argument("--email", "-e", help="Email address to send roster to", type=str, default=None)
     parsed_args = parser.parse_args(args)
     date = parsed_args.date
-
-    if date is None:
-        date = datetime.today()
 
     base_url = os.getenv("NHLE_URL")
     response = network_GET(f"{base_url}", "scoreboard/" + (f"{date.strftime('%Y-%m-%d')}" if date else "now"))
     if response.status_code == 200:
+        stop, thread = start_spinner(f"Loading games for {date.strftime('%A, %B %#d %Y')}...")
         try:
             data = response.json()
             games = (next(
@@ -82,16 +86,24 @@ def load_games_for_day(args=None):
             if not games or len(games) == 0:
                 sys.exit(f"🏒 There are no NHL games playing on {date.strftime('%A %m/%d/%Y')}.")
 
+            if parsed_args.email:
+                if not parsed_args.email or "@" not in parsed_args.email:
+                    sys.exit("A valid email address must be provided to send the roster.")
+                games_formatted = emailer.formatter.format_gameschedule(games["games"], f"Games for {date.strftime('%A, %B %#d %Y')}")
+
+            print_func = lambda: printer.print_games_data(games["games"])
+            header_func = lambda: printer.print_header_table(f"NHL Games ({len(games["games"])})", colored(date.strftime('%A, %B %#d %Y'), 'light_blue', attrs=['bold']))
+            email_func = lambda: emailer.send(parsed_args.email, f"NHL Stats - Games for {date.strftime('%A, %B %#d %Y')}", games_formatted) if parsed_args.email else None
             return (
                 games["games"],
-                lambda: printer.print_games_data(games["games"]),
-                lambda: printer.print_header_table(
-                    f"NHL Games ({len(games["games"])})",
-                    colored(date.strftime('%A, %B %#d %Y'), 'light_blue', attrs=['bold'])
-                )
+                print_func if parsed_args.print else None,
+                header_func if parsed_args.print else None,
+                email_func if parsed_args.email else None
             )
         except (Exception, NetworkError) as e:
             raise e
+        finally:
+            stop_spinner(stop, thread)
     else:
         sys.exit("Error loading today's games.")
 ...
@@ -132,13 +144,13 @@ def list_roster_for_team(args):
         roster = []
         
         for forward in data.get("forwards", []):
-            forwards.append(extract_player_info(forward, "F"))
+            forwards.append(parse_player_info(forward, "F"))
 
         for defense in data.get("defensemen", []):
-            defensemen.append(extract_player_info(defense, "D"))
+            defensemen.append(parse_player_info(defense, "D"))
 
         for goalie in data.get("goalies", []):
-            goalies.append(extract_player_info(goalie, "G"))
+            goalies.append(parse_player_info(goalie, "G"))
 
         if parsed_args.forward or parsed_args.defense or parsed_args.goalie:
             if parsed_args.forward: roster.extend(forwards)
@@ -149,6 +161,7 @@ def list_roster_for_team(args):
 
         team_name = parse_team_from_abbrev(parsed_args.team)
         team_data_parsed = parse_team_from_abbrev_full(parsed_args.team)
+
         if parsed_args.email:
             if not parsed_args.email or "@" not in parsed_args.email:
                 sys.exit("A valid email address must be provided to send the roster.")
@@ -156,8 +169,8 @@ def list_roster_for_team(args):
                 sys.exit("Error parsing team data for email.")
             roster_formatted = emailer.formatter.format_team_roster(roster, team_data_parsed)
         
-        email_func = lambda: emailer.send(parsed_args.email, f"NHL Stats - {team_name} Roster", roster_formatted)
         print_func = lambda: printer.print_roster_data(team_name, roster)
+        email_func = lambda: emailer.send(parsed_args.email, f"NHL Stats - {team_name} Roster", roster_formatted)
         return (
             roster,
             print_func if parsed_args.print else None,
@@ -166,17 +179,6 @@ def list_roster_for_team(args):
         )
     else:
         sys.exit("Error loading team roster.")
-...
-
-def extract_player_info(player, line):
-    first_name = player.get("firstName", {}).get("default", "")
-    last_name = player.get("lastName", {}).get("default", "")
-    return {
-        "id": player.get("id", ""),
-        "name": f"{first_name} {last_name}",
-        "number": player.get("sweaterNumber", ""),
-        "position": f"{line} - {position_code_to_name(player.get("positionCode", ""))}"
-    }
 ...
 
 @command(action="list", method="teams",
@@ -200,6 +202,7 @@ def list_available_teams(args=None):
     )
 ...
 
+
 if __name__ == "__main__":
     import emailer
     abbv = "FLA"
@@ -209,6 +212,4 @@ if __name__ == "__main__":
     if header: header()
     if print: print()
     if email: email()
-    # body = emailer.formatter.format_team_roster(data, team)
-    # emailer.send("z.wilkin1322.c", "NHL Stats - Player Update!", body)
 ...

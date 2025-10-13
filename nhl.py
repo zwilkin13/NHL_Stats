@@ -11,18 +11,22 @@ from registry import (
     print_help
 )
 
-def perform_debug_action(args=None):
-    action = args[0]
-    method = args[1]
+def print_no_output_message():
+    print("💡 Note: No output method specified.\n" 
+          "   Use --print or -p to print the results to the console. Provide an email address with --email, -e to email the results.")
+    return
+...
 
+def perform_debug_action(args=None):
+    action = args[0].lower()
+    method = args[1].lower()
     try:
         cmd = get_command(action, method)
-        _, printer, header, email = cmd(args[2:])
+        results, printer, header, email = cmd(args[2:])
         print("✅ Success!")
         
         if not printer and not email:
-            print("💡 Note: No output method specified. Use --print or -p to print the results to the console. "
-                    "Provide an email address with --email, -e to see results.")
+            print_no_output_message()
             
         if header: header()
         if printer: printer()
@@ -49,8 +53,8 @@ register_module_commands(actions)
 
 if __name__== "__main__":
     if hasattr(sys, "orig_argv") and any("debugpy" in arg for arg in sys.orig_argv):
-        cmd_args = ["list", "roster"]
-        input_args = ["TBL", "-p"]
+        cmd_args = ["get", "games"]
+        input_args = ["10232025"]
         args = cmd_args + input_args
         perform_debug_action(args)
     else:
@@ -85,8 +89,7 @@ if __name__== "__main__":
             print("✅ Success!")
 
             if not printer and not email:
-                print("💡 Note: No output method specified. Use --print or -p to print the results to the console. "
-                      "Provide an email address with --email, -e to see results.")
+                print_no_output_message()
                 
             if header: header()
             if printer: printer()
