@@ -118,6 +118,19 @@ def load_games_for_day(args=None):
         sys.exit("Error loading today's games.")
 ...
 
+@command(action="get", method="fantasy",
+         print_title="NHL Fantasy Team Data",
+         help_text="Load NHL fantasy team data.",
+         addtl_help_text="Fetches and displays data for a specified NHL fantasy team.",
+         args_help="<fantasy_team_id>",
+         options_help=[
+            "--print, -p      Print data to the console",
+            "--email, -e      Email address to send data to"
+         ])
+def get_fantasy_team_data(args):
+    raise NotImplementedError("This function is not yet implemented.")
+...
+
 @command(action="list", method="roster",
          print_title="NHL Team Roster",
          help_text="Load NHL team roster.",
