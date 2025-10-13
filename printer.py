@@ -1,25 +1,26 @@
+"""
+Handles all printing to the console in a formatted manner.
+"""
+
 import os
 import prettytable as pt
 from termcolor import colored
 from common import (
     validate_team_abbrev,
-    hyphen_words
+    hyphen_words,
+    hex_to_rgb
 )
 from data_parsers import (
     parse_team_from_abbrev,
     parse_game_from_data
 )
-from dotenv import load_dotenv
-load_dotenv()
 
-
-def print_debugger_warning(args):
+def print_debug_warning(args):
     orange = (255, 167, 0)
     print(colored("\n````````````````````````````````````````````````````````````````", orange))
     print(colored(f"⚠️  WARNING: You are running in debug mode!  ⚠️", orange, attrs=["bold"]))
     print(colored(f"   Args: {args[1:]}", orange, attrs=["bold"]))
     print(colored(f"`````````````````````````````````````````````````````````````````", orange))
-    return
 ...
 
 def print_header_table(title="NHL Stats", subtitle=""):
@@ -28,21 +29,19 @@ def print_header_table(title="NHL Stats", subtitle=""):
     table.field_names = [title]
     table.add_row([subtitle])
     print(table)
-    return
 ...
 
 def print_games_data(data):
     try:
+        print("⏳ Printing games data, please wait...")
         for game_data in data:
             try:
                 print_game_data(parse_game_from_data(game_data))
             except Exception as e:
                 print(f"Error printing: {game_data['awayTeam'].get('commonName', '').get('default', '')} @ {game_data['homeTeam'].get('commonName', '').get('default', '')} - {e}")
                 continue
-        return True
     except Exception as e:
-        print(f"Error printing games data: {e}")
-        return False
+        raise Exception(f"Error printing games data: {e}")
 ...
 
 def print_game_data(game):
@@ -56,13 +55,11 @@ def print_game_data(game):
 
     home_abbrev = home["abbrev"]
     home_name = home["name"]
-    home_common_name = home["commonName"]
     home_record = home["record"]
     home_lineup_url = home["lineupUrl"]
 
     away_abbrev = away["abbrev"]
     away_name = away["name"]
-    away_common_name = away["commonName"]
     away_record = away["record"]
     away_lineup_url = away["lineupUrl"]
 
@@ -72,7 +69,6 @@ def print_game_data(game):
     table.add_row([away_name, away_record, away_lineup_url])
 
     print(table)
-    return
 ...
 
 def print_roster_data(team_name, roster):
@@ -119,22 +115,15 @@ def print_teams_list(teams, color=True):
     table.header = False
 
     for abbrev, team in teams:
-        table.add_row([abbrev, colored(team["name"], hex_to_rgb(team["colors"]["primary"])) if color else team["name"]])
+        table.add_row(
+            [colored(abbrev, hex_to_rgb(team["colors"]["primary"])) if color else abbrev, 
+             colored(team["name"], hex_to_rgb(team["colors"]["primary"])) if color else team["name"]])
 
     print(table)
     return
 ...
 
-def hex_to_rgb(hex_color):
-    """Convert hex color string to an (R, G, B) tuple."""
-    hex_color = hex_color.lstrip('#')
-    if len(hex_color) == 3:
-        hex_color = ''.join([c*2 for c in hex_color])
-    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
-...
-
 if __name__ == "__main__":
-    import nhl
-    nhl.perform_debug_action(["get", "games", "2025-10-11"])
+    raise Exception("printer.py can not be run directly.")
 ...
 

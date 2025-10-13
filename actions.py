@@ -1,6 +1,7 @@
 """
 Scripts for command line actions.
 """
+
 import os, sys, printer, emailer
 from argparse import ArgumentParser
 from datetime import datetime
@@ -8,7 +9,15 @@ from termcolor import colored
 from registry import command
 from network import network_GET, NetworkError
 from data import TEAMS_LIST
-from spinner import start_spinner, stop_spinner
+from spinner import (
+    start_spinner, 
+    stop_spinner,
+    spinner_running
+)
+from html_formatters import (
+    format_team_roster,
+    format_gameschedule
+)
 from common import (
     validate_team_abbrev
 )
@@ -18,8 +27,6 @@ from data_parsers import (
     parse_team_from_abbrev_full,
     parse_player_info
 )
-from dotenv import load_dotenv
-load_dotenv()
 
 # Gets lineups for a game
 @command(action="get", method="lineups",
@@ -75,7 +82,7 @@ def load_games_for_day(args=None):
     base_url = os.getenv("NHLE_URL")
     response = network_GET(f"{base_url}", "scoreboard/" + (f"{date.strftime('%Y-%m-%d')}" if date else "now"))
     if response.status_code == 200:
-        stop, thread = start_spinner(f"Loading games for {date.strftime('%A, %B %#d %Y')}...")
+        stop, spinner = start_spinner(f"⏳ Parsing games for {date.strftime('%A, %B %#d %Y')}...")
         try:
             data = response.json()
             games = (next(
@@ -89,21 +96,24 @@ def load_games_for_day(args=None):
             if parsed_args.email:
                 if not parsed_args.email or "@" not in parsed_args.email:
                     sys.exit("A valid email address must be provided to send the roster.")
-                games_formatted = emailer.formatter.format_gameschedule(games["games"], f"Games for {date.strftime('%A, %B %#d %Y')}")
+                games_formatted = format_gameschedule(games["games"], f"Games for {date.strftime('%A, %B %#d %Y')}")
+            
+            stop_spinner(stop, spinner)
 
             print_func = lambda: printer.print_games_data(games["games"])
             header_func = lambda: printer.print_header_table(f"NHL Games ({len(games["games"])})", colored(date.strftime('%A, %B %#d %Y'), 'light_blue', attrs=['bold']))
             email_func = lambda: emailer.send(parsed_args.email, f"NHL Stats - Games for {date.strftime('%A, %B %#d %Y')}", games_formatted) if parsed_args.email else None
             return (
                 games["games"],
-                print_func if parsed_args.print else None,
                 header_func if parsed_args.print else None,
+                print_func if parsed_args.print else None,
                 email_func if parsed_args.email else None
             )
         except (Exception, NetworkError) as e:
             raise e
         finally:
-            stop_spinner(stop, thread)
+            if spinner_running(spinner):
+                stop_spinner(stop, spinner)
     else:
         sys.exit("Error loading today's games.")
 ...
@@ -167,14 +177,14 @@ def list_roster_for_team(args):
                 sys.exit("A valid email address must be provided to send the roster.")
             if not team_data_parsed or "name" not in team_data_parsed:
                 sys.exit("Error parsing team data for email.")
-            roster_formatted = emailer.formatter.format_team_roster(roster, team_data_parsed)
+            roster_formatted = format_team_roster(roster, team_data_parsed)
         
         print_func = lambda: printer.print_roster_data(team_name, roster)
         email_func = lambda: emailer.send(parsed_args.email, f"NHL Stats - {team_name} Roster", roster_formatted)
         return (
             roster,
-            print_func if parsed_args.print else None,
             None,
+            print_func if parsed_args.print else None,
             email_func if parsed_args.email else None
         )
     else:
@@ -196,18 +206,36 @@ def list_available_teams(args=None):
 
     return (
         TEAMS_LIST,
-        lambda: printer.print_teams_list(TEAMS_LIST, color=color),
         None,
+        lambda: printer.print_teams_list(TEAMS_LIST, color=color),
         None
     )
 ...
 
+@command(action="send", method="daily",
+         print_title="Daily NHL Games Email",
+         help_text="Send daily email of NHL games.",
+         addtl_help_text="Sends an email with the day's NHL games to the provided email address.\n   One email address is required, but multiple others can be entered.",
+         args_help="<email> [<email_2> <email_3> ...]",
+         options_help=[
+             "-g    Send daily games",
+             "-p    Send daily player stats"
+        ])
+def send_daily_email(args):
+    parser = ArgumentParser(description="Send daily email of NHL updates")
+    parser.add_argument("-g", help="Send daily games", action="store_true", default=False)
+    parser.add_argument("-p", help="Send daily player stats", action="store_true", default=False)
+    parsed_args = parser.parse_args(args)
+
+...
 
 if __name__ == "__main__":
+    # only need to import .env variables when running this file directly if not importing nhl.py
     import emailer
-    abbv = "FLA"
-    data, print, header, email = list_roster_for_team([abbv, "-e", "zwilkinf..fo"])
-    team = parse_team_from_abbrev_full(abbv)
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    data, print, header, email = list_roster_for_team(["FLA", "-e", "z.wilkin13@gmail.com"])
     
     if header: header()
     if print: print()

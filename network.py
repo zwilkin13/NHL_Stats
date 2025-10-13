@@ -49,3 +49,7 @@ def network_POST(baseUrl, endpoint, data, raiseStatus=True):
     finally:
         stop_spinner(stop, thread)
 ...
+
+if __name__ == "__main__":
+    raise NetworkError("network.py can not be run directly.")
+...

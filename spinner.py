@@ -1,6 +1,4 @@
-import threading
-import itertools
-import sys
+import threading, itertools, sys
 
 # Spinner function to indicate loading
 def spinner(spinner_stop, message, interval=0.1):
@@ -30,4 +28,8 @@ def stop_spinner(spinner_stop, spinner_thread):
     spinner_stop.set()
     spinner_thread.join()
     sys.stdout.flush()
+...
+
+def spinner_running(spinner_thread):
+    return spinner_thread.is_alive()
 ...

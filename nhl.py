@@ -3,6 +3,7 @@ Main entry point for NHL data processing
 """
 
 import sys
+from printer import print_debug_warning
 from network import NetworkError
 from registry import (
     get_command,
@@ -10,6 +11,8 @@ from registry import (
     register_module_commands,
     print_help
 )
+from dotenv import load_dotenv
+load_dotenv()
 
 def print_no_output_message():
     print("💡 Note: No output method specified.\n" 
@@ -18,6 +21,8 @@ def print_no_output_message():
 ...
 
 def perform_debug_action(args=None):
+    print_debug_warning(args)
+    
     action = args[0].lower()
     method = args[1].lower()
     try:
