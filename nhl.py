@@ -3,6 +3,7 @@ Main entry point for NHL data processing
 """
 
 import sys
+from network import NetworkError
 from registry import (
     get_command,
     list_available_commands,
@@ -16,11 +17,18 @@ def perform_debug_action(args=None):
 
     try:
         cmd = get_command(action, method)
-        (results, printer, header) = cmd(args[2:])
+        _, printer, header, email = cmd(args[2:])
+        print("✅ Success!")
+        
+        if not printer and not email:
+            print("💡 Note: No output method specified. Use --print or -p to print the results to the console. "
+                    "Provide an email address with --email, -e to see results.")
+            
         if header: header()
         if printer: printer()
-        else: print(results)
-        print("✅ Success!")
+        if email: email()
+    except NetworkError as e:
+        print(f"❌ Network error occurred: {e}")
     except Exception as e:
         print(f"❌ Error executing command '{action} {method}': {e}")
     except SystemExit as e:
@@ -41,7 +49,10 @@ register_module_commands(actions)
 
 if __name__== "__main__":
     if hasattr(sys, "orig_argv") and any("debugpy" in arg for arg in sys.orig_argv):
-        perform_debug_action(sys.argv[1:])
+        cmd_args = ["list", "roster"]
+        input_args = ["TBL", "-p"]
+        args = cmd_args + input_args
+        perform_debug_action(args)
     else:
         try:
             
@@ -70,13 +81,18 @@ if __name__== "__main__":
                     print(f"   {cmd}: [{', '.join(sub_cmds)}]")
                 sys.exit(0)
         
-            (results, printer, header, email) = command_function(raw_args)
+            results, printer, header, email = command_function(raw_args)
             print("✅ Success!")
-            
+
+            if not printer and not email:
+                print("💡 Note: No output method specified. Use --print or -p to print the results to the console. "
+                      "Provide an email address with --email, -e to see results.")
+                
             if header: header()
             if printer: printer()
-            else: print(results)
             if email: email()
+        except NetworkError as e:
+            print(f"❌ Network error occurred: {e}")
         except Exception as e:
             print(f"❌ Error executing command '{action} {method}': {e}")
         except SystemExit as e:

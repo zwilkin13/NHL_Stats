@@ -75,10 +75,9 @@ def print_game_data(game):
     return
 ...
 
-def print_roster_data(team_abbrv, roster):
+def print_roster_data(team_name, roster):
     table = pt.PrettyTable(border=True, header=True, align="l")
     table.set_style(pt.SINGLE_BORDER)
-    team_name = parse_team_from_abbrev(team_abbrv)
     table.title = f"🏒 {team_name} Roster"
     table.field_names = ["#", "Player", "Position", "id"]
 

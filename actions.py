@@ -99,15 +99,22 @@ def load_games_for_day(args=None):
 @command(action="list", method="roster",
          print_title="NHL Team Roster",
          help_text="Load NHL team roster.",
-         addtl_help_text="Fetches and displays the roster for the specified NHL team.",
-         args_help="<team>",
-         options_help=["<team>   Abbreviation for the NHL team (i.e. TBL)"])
+         addtl_help_text="Fetches and displays the roster for the specified NHL team.\n   Use 'list teams' to see the available teams and abbreviations.",
+         args_help="<team_abbreviation>",
+         options_help=[
+            "--forward, -f      Return forwards only",
+            "--defense, -d      Return defensemen only",
+            "--goalie,  -g      Return goalies only",
+            "--print,   -p      Print the roster to console",
+            "--email,   -e      Email address to send roster to"
+         ])
 def list_roster_for_team(args):
     parser = ArgumentParser(description="List Roster for Team Processor")
     parser.add_argument("team", help="Abbreviation for team(s) (i.e. TBL)", type=str)
     parser.add_argument("--forward", "-f", help="Return forwards only", action="store_true", default=False)
     parser.add_argument("--defense", "-d", help="Return defensemen only", action="store_true", default=False)
     parser.add_argument("--goalie", "-g", help="Return goalies only", action="store_true", default=False)
+    parser.add_argument("--print", "-p", help="Print the roster to console", action="store_true", default=False)
     parser.add_argument("--email", "-e", help="Email address to send roster to", type=str, default=None)
     parsed_args = parser.parse_args(args)
 
@@ -142,12 +149,20 @@ def list_roster_for_team(args):
 
         team_name = parse_team_from_abbrev(parsed_args.team)
         team_data_parsed = parse_team_from_abbrev_full(parsed_args.team)
-        roster_formatted = emailer.formatter.format_team_roster(roster, team_data_parsed)
+        if parsed_args.email:
+            if not parsed_args.email or "@" not in parsed_args.email:
+                sys.exit("A valid email address must be provided to send the roster.")
+            if not team_data_parsed or "name" not in team_data_parsed:
+                sys.exit("Error parsing team data for email.")
+            roster_formatted = emailer.formatter.format_team_roster(roster, team_data_parsed)
+        
+        email_func = lambda: emailer.send(parsed_args.email, f"NHL Stats - {team_name} Roster", roster_formatted)
+        print_func = lambda: printer.print_roster_data(team_name, roster)
         return (
             roster,
-            lambda: printer.print_roster_data(parsed_args.team, roster),
+            print_func if parsed_args.print else None,
             None,
-            lambda: emailer.send(parsed_args.email, f"NHL Stats - {team_name} Roster", roster_formatted) if parsed_args.email else None
+            email_func if parsed_args.email else None
         )
     else:
         sys.exit("Error loading team roster.")
@@ -180,6 +195,7 @@ def list_available_teams(args=None):
     return (
         TEAMS_LIST,
         lambda: printer.print_teams_list(TEAMS_LIST, color=color),
+        None,
         None
     )
 ...
@@ -187,9 +203,12 @@ def list_available_teams(args=None):
 if __name__ == "__main__":
     import emailer
     abbv = "FLA"
-    data, _, _ = list_roster_for_team([abbv])
+    data, print, header, email = list_roster_for_team([abbv, "-e", "zwilkinf..fo"])
     team = parse_team_from_abbrev_full(abbv)
-    body = emailer.formatter.format_team_roster(data, team)
-
-    emailer.send("z.wilkin13@gmail.com", "NHL Stats - Player Update!", body)
+    
+    if header: header()
+    if print: print()
+    if email: email()
+    # body = emailer.formatter.format_team_roster(data, team)
+    # emailer.send("z.wilkin1322.c", "NHL Stats - Player Update!", body)
 ...
