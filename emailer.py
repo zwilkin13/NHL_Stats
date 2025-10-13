@@ -1,5 +1,5 @@
 import sys, os
-from spinner import start_spinner, stop_spinner
+from spinner import start_spinner, stop_spinner, spinner_running
 
 def send(to, subject, body):
     import smtplib
@@ -25,8 +25,22 @@ def send(to, subject, body):
         print(f"✅ Email sent successfully to {to}.")
     except Exception as stop:
         sys.exit(f"Failed to send email: {stop}")
+    finally:
+        if spinner_running(spinner):
+            stop_spinner(stop, spinner)
 ...
 
+def send_multiple(recipients, subject, body):
+    try:
+        for recipient in recipients:
+            try:
+                send(recipient, subject, body)
+            except Exception as e:
+                print(f"❌ Failed to send email to {recipient}: {e}")
+            continue
+    except Exception as e:
+        sys.exit(f"Failed to send emails to [{', '.join(recipients)}]: {e}")
+...
 
 
 if __name__ == "__main__":

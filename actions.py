@@ -223,11 +223,62 @@ def list_available_teams(args=None):
         ])
 def send_daily_email(args):
     parser = ArgumentParser(description="Send daily email of NHL updates")
-    parser.add_argument("-g", help="Send daily games", action="store_true", default=False)
-    parser.add_argument("-p", help="Send daily player stats", action="store_true", default=False)
+    parser.add_argument("email", nargs="+", help="Email address(es) to send the daily email to", type=str)
+    parser.add_argument("-g", help="Send daily games", action="store_true", default=None)
+    parser.add_argument("-p", help="Send daily player stats", action="store_true", default=None)
     parsed_args = parser.parse_args(args)
 
+    date = datetime.today()
+
+    if not parsed_args.email or len(parsed_args.email) == 0:
+        sys.exit("At least one email address must be provided to send the daily email.")
+    
+    import re
+    for email in parsed_args.email:
+        if not re.match(r"^[^@]+@[^@]+\.[^@]+$", email):
+            print(f"⚠️ Provided email [{email}] is not a valid email address. Email will be skipped.")
+            continue
+
+    if not parsed_args.g and not parsed_args.p:
+        # default to all data, if none were specifically requested
+        parsed_args.g = True
+        parsed_args.p = True
+
+    try:
+        if parsed_args.g:
+            games, _, _, _ = load_games_for_day([""])
+            games_formatted = format_gameschedule(games, f"Games for {date.strftime('%A, %B %#d %Y')}")
+
+        # todo : replace with player info from fantasy league once implemented
+        if parsed_args.p:
+            team_abbrev = "TBL"
+            roster, _, _, _ = list_roster_for_team([team_abbrev])
+            team_name = parse_team_from_abbrev(team_abbrev)
+            team_data_parsed = parse_team_from_abbrev_full(team_abbrev)
+            roster_formatted = format_team_roster(roster, team_data_parsed)
+
+        email_subject = f"NHL Stats - Daily Update for {date.strftime('%A, %B %#d %Y')}"
+        email_body = ""
+        if parsed_args.g: email_body += games_formatted + "<br/>"
+        if parsed_args.p: email_body += roster_formatted + "<br/>"
+
+        if not email_body.strip():
+            sys.exit("No data available to send in the daily email.")
+        
+        return (
+            None,
+            None,
+            None,
+            lambda: emailer.send_multiple(parsed_args.email, email_subject, email_body)
+        )
+    except Exception as e:
+        sys.exit(f"Error sending daily email: {e}")
+    except SystemExit as e:
+        sys.exit(f"send daily exited!\n   {e}")
 ...
+
+
+
 
 if __name__ == "__main__":
     # only need to import .env variables when running this file directly if not importing nhl.py
@@ -235,9 +286,9 @@ if __name__ == "__main__":
     from dotenv import load_dotenv
     load_dotenv()
 
-    data, print, header, email = list_roster_for_team(["FLA", "-e", "z.wilkin13@gmail.com"])
+    data, print_func, header_func, email_func = list_roster_for_team(["FLA", "-e", "z.wilkin13@gmail.com"])
     
-    if header: header()
-    if print: print()
-    if email: email()
+    if header_func: header_func()
+    if print_func: print_func()
+    if email_func: email_func()
 ...

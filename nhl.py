@@ -58,8 +58,8 @@ register_module_commands(actions)
 
 if __name__== "__main__":
     if hasattr(sys, "orig_argv") and any("debugpy" in arg for arg in sys.orig_argv):
-        cmd_args = ["get", "games"]
-        input_args = ["10232025"]
+        cmd_args = ["send", "daily"]
+        input_args = ["z.wilkin13@gmail.com", "zwilkin_live.com"]
         args = cmd_args + input_args
         perform_debug_action(args)
     else:

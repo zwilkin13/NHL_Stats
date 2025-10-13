@@ -19,7 +19,7 @@ def print_debug_warning(args):
     orange = (255, 167, 0)
     print(colored("\n````````````````````````````````````````````````````````````````", orange))
     print(colored(f"⚠️  WARNING: You are running in debug mode!  ⚠️", orange, attrs=["bold"]))
-    print(colored(f"   Args: {args[1:]}", orange, attrs=["bold"]))
+    print(colored(f"   Args: {args[2:]}", orange, attrs=["bold"]))
     print(colored(f"`````````````````````````````````````````````````````````````````", orange))
 ...
 
